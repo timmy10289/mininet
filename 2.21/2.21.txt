@@ -1,0 +1,197 @@
+參考網址 https://segmentfault.com/a/1190000018391069  從4.1開始
+
+https://www.grandsys.com.tw/news/rd/901-linux-docker
+
+192.168.154.128
+
+cd ~
+apt install bridge-utils
+
+ip link add br0 type bridge
+ip link set dev br0 up
+ifconfig   會看到br0的網路
+
+brctl -h  可以看brctl的參數
+brctl show  會看到br0
+
+要輸入三次(ip link add type veth) 创建 veth pair
+ip link add type veth
+ip link add type veth
+ip link add type veth 
+
+ifconfig -a 可以看到剛才創造的介面(interface)
+應該會成三對(veth0veth1 veth2veth3 veth4veth5)
+
+創建三個空間(namespace)
+ip netns add net0
+ip netns add net1
+ip netns add net2
+
+ip netns ls 可以看剛才新增的namespace(裡面還沒有網路卡)
+
+先配第一個
+ip link set dev veth1 netns net0  把veth1放進net0
+ip netns exec net0 ip addr show   看看net0有沒有veth1
+
+ip netns exec net0 ip link set dev veth1 name eth0 把veth1改成eth0
+ip netns exec net0 ip addr show    看看有沒有改成eth0
+
+ip netns exec net0 ip addr add 10.0.1.1/24 dev eth0 配ip 10.0.1..1/24給eth0
+ip netns exec net0 ip addr show  看看ip有沒有改
+ip netns exec net0 ip link set dev eth0 up
+ip link set dev veth0 up
+
+第二個
+ip link set dev veth3 netns net1
+ip netns exec net1 ip link set dev veth3 name eth0
+ip netns exec net1 ip addr add 10.0.1.2/24 dev eth0
+ip netns exec net1 ip link set dev eth0 up
+ip link set dev veth2 up
+ip netns exec net1 ip addr show  看看名字ip有沒有改
+
+第三個
+ip link set dev veth5 netns net2
+ip netns exec net2 ip link set dev veth5 name eth0
+ip netns exec net2 ip addr add 10.0.1.3/24 dev eth0
+ip netns exec net2 ip link set dev eth0 up
+ip link set dev veth4 up
+ip netns exec net2 ip addr show  看看名字ip有沒有改
+
+
+這邊截一張圖
+
+
+
+ip link set dev veth0 master br0     加到br0
+ip link set dev veth2 master br0 
+ip link set dev veth4 master br0 
+
+brctl show   應該會有br0 後面分別有 veth0 veth2 veth4
+
+ifconfig 可以看到 veth0 veth2 veth4
+
+展示一下剛才配的ip
+veth0  10.0.1.1
+veth2  10.0.1.2
+veth4  10.0.1.3
+
+互ping
+ip netns exec net0 ping 10.0.1.2 -c 3  後面-c 3 代表接受三個封包就好
+
+ip netns exec net0 ping 10.0.1.3 -c 3
+
+開一個新的終端機
+ip netns exec net1 tcpdump -nn -i eth0  抓封包
+ip netns exec net1代表在net1容器裡面
+tcpdump 文字版的wireshark
+-nn詳細資訊顯示
+-l eth0 指定eth0網路卡
+
+
+回到舊的終端機 ip netns exec net0 ping 10.0.1.2 -c 3  
+去新的終端機按ctrl c 看看有沒有抓到封包還有顯示詳細資訊 會比較慢
+
+在net1裡運行網頁伺服器
+ip netns exec net1 echo hi > hi.htm
+ip netns exec net1 python -m SimpleHTTPServer 80 
+用net0顯示
+ip netns exec net0 curl http://10.0.1.2/hi.htm 
+這邊也截一張圖 
+
+
+
+
+如果想要把br0 裡面的三個veth0 veth2 veth4 刪掉
+
+brctl delif br0 veth0
+brctl delif br0 veth2
+brctl delif br0 veth4
+brctl show 查看
+
+刪掉網路卡
+ip link delete veth0
+ip link delete veth2
+ip link delete veth4
+ifconfig 查看
+
+把bridge刪掉
+ifconfig br0 down  先關
+brctl delbr br0  才能刪
+brctl show
+
+刪掉空間
+ip netns del net2
+ip netns del net1
+ip netns del net0
+ip netns ls 查看
+
+
+要創造新的空間(跟剛才依樣步驟 多加內地路由器)
+
+cat /proc/sys/net/ipv4/ip_forward 檢查路由器有沒有打開
+0代表沒有 1代表有
+
+0的話 要執行 
+echo 1 > /proc/sys/net/ipv4/ip_forward 
+要關掉 就執行
+echo 0 > /proc/sys/net/ipv4/ip_forward 
+
+我們現在要打開所以要是1
+cat /proc/sys/net/ipv4/ip_forward 查看
+
+
+新增兩個空間
+ip netns add net0
+ip netns add net1
+ip netns ls
+
+建立兩對veth
+ip link add type veth
+ip link add type veth
+
+第一個
+ip link set dev veth1 netns net0
+ip netns exec net0 ip link set dev veth1 name eth0
+ip netns exec net0 ip addr add 10.0.1.1/24 dev eth0
+ip netns exec net0 ip link set dev eth0 up
+ip netns exec net0 ip addr show 查看
+
+加入路由器
+ip netns exec net0 ip route add default via 10.0.1.254
+ip netns exec net0 ip route show
+
+
+第二個
+ip link set dev veth3 netns net1
+ip netns exec net1 ip link set dev veth3 name eth0
+ip netns exec net1 ip addr add 10.0.2.1/24 dev eth0
+ip netns exec net1 ip link set dev eth0 up
+ip netns exec net1 ip addr show 查看
+
+加入路由器
+ip netns exec net1 ip route add default via 10.0.2.254
+ip netns exec net1 ip route show
+
+
+要把veth0 跟veth2 啟動
+
+ifconfig veth0 up
+ifconfig veth2 up
+
+ip addr add 10.0.1.254/24 dev veth0
+ip addr add 10.0.2.254/24 dev veth2
+ifconfig 查看
+
+
+目前配置好
+
+net0  eth0 10.0.1.1/24 路由器 10.0.1.254
+net1  eth0 10.0.2.1/24 路由器 10.0.2.254
+veth0 10.0.1.254/24
+veth2 10.0.2.254/24
+
+ping看看
+ip netns exec net0 ping 10.0.2.1 -c 3 
+ip netns exec net1 ping 10.0.1.1 -c 3 
+
+這邊截一張圖

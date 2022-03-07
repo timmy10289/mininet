@@ -6,6 +6,8 @@ https://releases.ubuntu.com/16.04/ubuntu-16.04.7-desktop-amd64.iso
 
 sudo passwd root  設定root密碼
 
+apt install git  下載git
+
 git clone https://github.com/mininet/mininet 下載mininet
 
 cd mininet/   去資料夾\

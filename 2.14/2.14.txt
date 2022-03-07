@@ -1,0 +1,34 @@
+安裝mininet 參考網站 
+https://github.com/mininet/mininet
+
+su
+apt install git
+git clone https://github.com/mininet/mininet
+
+之後
+cd mininet/
+util/install.sh -a
+
+出現Enjoy Mininet！ 就可以了 
+
+開啟兩個終端機h1跟h2   xterm h1 h2
+
+打開按ctrl跟右鍵不放 就可以調整字型 選huge
+
+兩邊ifconfig
+h1 10.0.0.1
+h2 10.0.0.2
+
+去h2 
+cd ~
+echo "hi" > hi.htm
+ls
+
+python -m SimpleHTTPServer 80      
+-m是模組  在80port用 python SimpleHTTPServer 模組建立一個網頁伺服器
+
+去h1
+curl http://10.0.0.2/hi.htm   
+如果沒辦法用curl 就要去終端機 apt update    apt install curl
+
+完成

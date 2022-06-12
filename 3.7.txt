@@ -1,0 +1,186 @@
+mkdir 2022mininet
+cd 2022mininet
+gedit 1.py
+
+which python
+
+#!/usr/bin/python
+
+from mininet.cli import CLI
+from mininet.net import Mininet
+from mininet.link import Link,TCLink,Intf
+
+if '__main__==__name__:'
+  net=Mininet(lonk=TCLink)
+  h1=net.addHost('h1')
+  h2=net.addHost('h2')
+  Link(h1,h2)
+  net.bulid()
+  CLI(net)
+  net.stop()
+
+chmod +x 1.py
+./1.py
+net
+exit
+xterm h1 h2
+兩台互ping
+
+這邊節一張圖
+
+ifconfig h1-eth0 0 清除ip
+ip addr 192.168.56.1.1/24 brd + dev h1-eth0 設定ip
+
+
+ifconfig h2-eth0 0
+ip addr 192.168.56.1.2/24 brd + dev h2-eth0
+
+
+gedit 2.py
+
+
+#!/usr/bin/python
+
+from mininet.cli import CLI
+from mininet.net import Mininet
+from mininet.link import Link,TCLink,Intf
+
+if '__main__'==__name__:
+  net=Mininet(link=TCLink)
+  h1=net.addHost('h1')
+  h2=net.addHost('h2')
+  Link(h1,h2)
+  net.build()
+  h1.cmd("ifconfig h1-eth0 0")
+  h1.cmd("ip addr add 192.168.1.1/24 brd + dev h1-eth0")
+  h2.cmd("ifconfig h2-eth0 0")
+  h2.cmd("ip addr add 192.168.1.2/24 brd + dev h2-eth0")
+  CLI(net)
+  net.stop()
+
+chmod +x 2.py
+./2.py
+
+route -n
+
+ip route add default via 192.168.1.2
+ip route add default via 192.168.2.2
+ip route show
+
+
+#!/usr/bin/python
+
+from mininet.cli import CLI
+from mininet.net import Mininet
+from mininet.link import Link,TCLink,Intf
+
+if '__main__'==__name__:
+  net=Mininet(link=TCLink)
+  h1=net.addHost('h1')
+  h2=net.addHost('h2')
+  Link(h1,h2)
+  net.build()
+  h1.cmd("ifconfig h1-eth0 0")
+  h1.cmd("ip addr add 192.168.1.1/24 brd + dev h1-eth0")
+  h2.cmd("ifconfig h2-eth0 0")
+  h2.cmd("ip addr add 192.168.1.2/24 brd + dev h2-eth0")
+  CLI(net)
+  net.stop()
+
+三個節點
+四個節點
+
+下一個
+#!/usr/bin/python
+
+from mininet.cli import CLI
+from mininet.net import Mininet
+from mininet.link import Link,TCLink,Intf
+
+if '__main__'==__name__:
+  net=Mininet(link=TCLink)
+  h1=net.addHost('h1')
+  h2=net.addHost('h2')
+  h3=net.addHost('h3')
+  br0=net.addHost('br0')
+  Link(h1,br0)
+  Link(h2,br0)
+  Link(h3,br0)
+  net.build()
+  br0.cmd("brctl addbr mybr)
+  br0.cmd("brctl addif mybr br0-eth0")
+  br0.cmd("brctl addif mybr br0-eth1")
+  br0.cmd("brctl addif mybr br0-eth2")
+  br0.cmd("ifconfig mybr up")
+  CLI(net)
+  net.stop()
+
+xterm br0
+
+brctl addbr mybr br0-eth0"
+brctl addif 
+
+arp -n  檢查有沒有偵測到網卡位置
+
+
+
+
+brctl setageing mybr 0 會變成hub
+
+#!/usr/bin/python
+
+from mininet.cli import CLI
+from mininet.net import Mininet
+from mininet.link import Link,TCLink,Intf
+
+if '__main__'==__name__:
+  net=Mininet(link=TCLink)
+  h1=net.addHost('h1')
+  h2=net.addHost('h2')
+  h3=net.addHost('h3')
+  br0=net.addHost('br0')
+  Link(h1,br0)
+  Link(h2,br0)
+  Link(h3,br0)
+  net.build()
+  br0.cmd("brctl addbr mybr)
+  br0.cmd("brctl addif mybr br0-eth0")
+  br0.cmd("brctl addif mybr br0-eth1")
+  br0.cmd("brctl addif mybr br0-eth2")
+  br0.cmd("brctl setageing mybr 0")
+  br0.cmd("ifconfig mybr up")
+  CLI(net)
+  net.stop()
+
+
+#!/usr/bin/python
+
+from mininet.cli import CLI
+from mininet.net import Mininet
+from mininet.link import Link,TCLink,Intf
+
+if '__main__'==__name__:
+  net=Mininet(link=TCLink)
+  h1=net.addHost('h1')
+  h2=net.addHost('h2')
+  h3=net.addHost('h3')
+  br0=net.addHost('br0')
+  Link(h1,br0)
+  Link(h2,br0)
+  Link(h3,br0)
+  net.build()
+  br0.cmd("brctl addbr mybr)
+  br0.cmd("brctl addif mybr br0-eth0")
+  br0.cmd("brctl addif mybr br0-eth1")
+  br0.cmd("brctl addif mybr br0-eth2")
+  br0.cmd("ifconfig mybr up")
+  CLI(net)
+  net.stop()
+
+
+arpspoof   可以用靜態arp解
+apt install dsniff
+arpspoof -c
+
+
+安裝ettercat

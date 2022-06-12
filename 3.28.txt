@@ -1,0 +1,46 @@
+apt install ffmpeg
+
+用來做影像壓縮 串流 encode decode stream
+
+會同時安裝ffplay
+
+cd test-mininet 
+wget 
+
+ffmpeg -i formen_cif.y4m formen_cif.yuv
+
+yuv 是原始資料沒有進行影像壓縮   可以自動調色度跟亮度
+因為影像壓縮比較難直接用三原色來壓 所以會改用亮度與色度來使用
+
+
+ffmpeg -f rawvideo -s:v 352x288 -r 30 -i formen_cif.yuv -c libx264 -qp 30 -g 12 -bf 2 -f mpeg foreman.mp4
+
+ls -l foreman_cif.yuv -h
+
+ls -l foreman_cif.mp4 -h
+
+ffmpeg -f rawvideo -s:v 352x288 -r 30 -i foreman_cif.yuv -c libx264 -qp 30 -g 12 -bf 2 -f mpeg foreman.mp4
+
+ffplay foreman.mp4
+
+
+psnr 就是可以比較每個pixel的差別與大小
+psnr 越大 失真越小  psnr 越小 失真越大
+
+使用psnr
+gcc -o psnr psnr.c -lm
+
+ffmpeg -i foreman.mp4 1.yuv
+
+./psnr 352 288 420 foreman_cif.yuv 1.yuv > psnr1
+
+gnuplot
+plot 
+
+
+ffmpeg
+
+
+rtp 協定(即時傳輸通訊協定)
+
+ffplay 

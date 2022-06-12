@@ -14,3 +14,6 @@ cd mininet/   去資料夾\
 util/install.sh -a   安裝所有套件
 
 出現 Enjoy Mininet！ 就代表安裝完成!
+
+老師機的密碼是ubundu
+

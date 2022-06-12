@@ -1,0 +1,107 @@
+老師機
+
+mn 
+看有沒有冒出containernet
+
+如果沒有
+cd /home/user/containernet
+python3 ./setup.py install
+cd /home/user/containernet/examples
+python3 dockerhosts.py
+
+h1 ping -c 3 d1看看可不可以執行
+exit
+
+docker images 有沒有ubuntu:trusty
+如果沒有 docker pull ubuntu:trusty
+
+
+測試
+gedit dockerhost1.py 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/usr/bin/python
+
+"""
+This example shows how to create a simple network and
+how to create docker containers (based on existing images)
+to it.
+"""
+
+from mininet.net import Containernet
+from mininet.node import Controller, Docker, OVSSwitch
+from mininet.cli import CLI
+from mininet.log import setLogLevel, info
+from mininet.link import TCLink, Link
+
+
+def topology():
+
+    "Create a network with some docker containers acting as hosts."
+
+    net = Containernet()
+
+    info('*** Adding hosts\n')
+    h1 = net.addHost('h1',  ip='10.0.0.250')
+
+    info('*** Adding docker containers\n')
+    d1 = net.addDocker('d1', ip='10.0.0.251', dimage="ubuntu:trusty")
+    
+    info('*** Creating links\n')
+    net.addLink(h1, d1)
+   
+    info('*** Starting network\n')
+    net.start()
+
+    info('*** Running CLI\n')
+    CLI(net)
+
+    info('*** Stopping network')
+    net.stop()
+
+if __name__ == '__main__':
+    setLogLevel('info')
+    topology()
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+python3 dockerhost1.py
+xterm h1
+
+再開另一個終端機
+docker ps
+docker exec -it mn.d1 bash
+ifconfig
+應該會看到d1 10.0.0.251
+
+去h1 ifconfig  會看到10.0.0.250
+ping 10.0.0.251 應該可以互ping
+exit
+
+docker run -it ubuntu:trusty bash
+
+apt update
+apt install openssh-server
+apt install apache2
+apt install vim
+
+vim /etc/ssh/sshd_config
+按/PermitRoot
+找到PermitRootLogin 
+按a 或是inset鍵 把without password 改成yes
+按esc 再打:wq 就可以離開了
+
+/etc/init.d/ssh start 開啟網頁伺服器
+/etc/init.d/ssh status 檢查
+
+ifconfig   應該是172.17.0.2
+
+passwd root
+設密碼ubuntu
+
+開一個新的終端機
+
+ssh root@172.17.0.2 輸入密碼就可以了
+如果有報錯 有可能之前有連過 然後密碼改了
+ssh-keygen -f "/root/.ssh/known_hosts" -R 172.17.0.2
+重新再執行就好了

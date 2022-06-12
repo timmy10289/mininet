@@ -1,0 +1,34 @@
+vlan
+
+modprobe 8021q  把8021放到kernel
+cd /boot  kernel預設地
+ls -h 核心名稱-*
+ls -lh 核心名稱-*  比較清楚看
+
+
+mkdir data
+cd data
+去網路上查linux kernel選longterm 在tarball右鍵複製連結
+wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.15.46.tar.xz
+
+ubundu  編譯kernel
+參考網站https://www.itread01.com/content/1548585199.html
+要先安裝以下模組
+sudo apt-get install gcc make libncurses5-dev openssl libssl-dev 
+sudo apt-get install build-essential 
+sudo apt-get install pkg-config
+sudo apt-get install libc6-dev
+sudo apt-get install bison
+sudo apt-get install flex
+sudo apt-get install libelf-dev
+
+ls
+tar xfJ 剛才wget的檔案
+
+
+
+
+
+
+
+

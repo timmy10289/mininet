@@ -1,0 +1,181 @@
+新增程式碼
+觀察成功率跟失敗率
+
+h1r = {'bw':100,'delay':'1ms','loss':5}
+net.addLink(h1, r, cls=TCLink , **h1r)
+h2r = {'bw':100,'delay':'1ms','loss':0}
+net.addLink(h2, r, cls=TCLink , **h2r)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#!/usr/bin/python
+
+from mininet.cli import CLI
+from mininet.net import Mininet
+from mininet.link import Link,TCLink
+
+if '__main__'==__name__:
+  net=Mininet(link=TCLink)
+  h1=net.addHost('h1')
+  h2=net.addHost('h2')
+  r=net.addHost('r')
+  h1r = {'bw':100,'delay':'1ms','loss':10}
+  net.addLink(h1, r, cls=TCLink , **h1r)
+  h2r = {'bw':100,'delay':'1ms','loss':0}
+  net.addLink(h2, r, cls=TCLink , **h2r)
+  net.build()
+
+  h1.cmd("ifconfig h1-eth0 0")
+  h1.cmd("ip addr add 192.168.1.1/24 brd + dev h1-eth0")
+  h1.cmd("ip route add default via 192.168.1.254")
+  h2.cmd("ifconfig h2-eth0 0")
+  h2.cmd("ip addr add 192.168.2.1/24 brd + dev h2-eth0")
+  h2.cmd("ip route add default via 192.168.2.254")
+  r.cmd("ifconfig r-eth0 0")
+  r.cmd("ifconfig r-eth1 0")
+  r.cmd("ip addr 192.168.1.254/24 brd + dev r-eth0")
+  r.cmd("ip addr 192.168.2.254/24 brd + dev r-eth1")
+  r.cmd("echo 1 > /proc/sys/net/ip/ipv4/ip_forward")
+  
+  CLI(net)
+  net.stop()
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+chmod +x 3-1.py
+./3-1.py
+
+畫圖複習
+
+xterm h1 h2
+
+在h2
+iperf -s -i 1 > a
+
+在h1
+iperf -c 192.168.2.1 -t 30
+
+兩邊都執行 看看可不可接收
+
+在h2 cat a
+cat a | grep sec | head -n 30 從一秒取到30秒
+
+cat a | grep sec | head -n 30 | tr "-" " " | awk '{print $4,$8}' >tcp
+
+gnuplot
+
+plot "tcp" with linespoints
+就可以畫出圖了(靜態圖)
+
+~~~~~~~~~~~~~~~~~~~~~~~
+動態圖
+
+gedit process.sh &
+
+
+~~~~~~~~~~~~~~~~~~~~~
+filename='a'
+> result
+> a
+b="not"
+while true
+do
+   if [ -s "$filename" ]
+   then
+        #echo `"$filename is NOT empty file."`
+        while IFS= read -r line
+        do
+          result=echo "$line" | grep "sec"
+          if [[ -n $result ]]
+          then
+            #echo $result
+            b="done"
+            break
+          fi
+        done < a
+   fi
+ 
+   if [ $b = "done" ]
+   then
+     break
+   fi
+done
+ 
+while IFS= read -r line
+do
+  result=echo "$line" | grep "sec" | tr "-" " " | awk '{print $4,$8}'
+  if [[ -n $result ]]
+  then
+    echo $result
+    echo $result >> result
+    sleep 1
+  fi
+done < a
+
+~~~~~~~~~~~~~~~~~~~~~
+
+這邊複製上去會有很多空格
+跳出來
+執行
+sed -i '/^$/d' process.sh
+
+gedit gnuplot-plot
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+FILE = 'result'
+stop = 0
+ 
+N = 10
+set yrange [0:100]
+set ytics 0,10,100
+set key off
+set xlabel "time(sec)"
+set ylabel "Throughput(Mbps)"
+ 
+while (!stop) {  
+    pause 0.1       # pause in seconds
+    stats [*:*][*:*] FILE u 0 nooutput
+    lPnts=STATS_records<N ? 0: STATS_records-N
+    plot FILE u 1:2 every ::lPnts w lp pt 7
+}
+
+~~~~~~~~~~~~~~~~
+
+sed -i '/^$/d' gnuplot-plot
+
+gedit plot-throughput.sh
+~~~~~~~~~~~~~~~~~~~
+
+filename='result'
+while true
+do
+   if [ -s "$filename" ]
+   then
+        #echo "$filename is NOT empty file."
+        break
+   fi
+done
+ 
+gnuplot gnuplot-plot
+
+~~~~~~~~~~~~~~~~~~~~~
+sed -i '/^$/d' plot-throughput.sh
+
+
+剛才的3-1.py 再次執行 xterm h1 h2
+
+在h2執行
+chmod +x plot-throughput.sh
+chmod +x process.sh
+chmod +x gnuplot-plot
+
+再新增兩個h2視窗 xterm h2 h2
+
+先讓第一個h2 執行 ./process.sh
+再讓第二個h2 執行 ./plot-throughput.sh
+再讓第三個h2 執行  iperf -s -i 1 > a
+去h1 執行 iperf -c 192.168.2.1 -t 1000
+
+
+
+
+
+
